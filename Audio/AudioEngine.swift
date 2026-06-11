@@ -15,6 +15,7 @@ final class AudioEngine {
     private let poolSize = 12
 
     private var current: SoundProfile?
+    private var connectedFormat: AVAudioFormat?
     private let queue = DispatchQueue(label: "com.keyclick.audio", qos: .userInteractive)
 
     /// Independent of system volume. 0.0–1.0.
@@ -56,8 +57,24 @@ final class AudioEngine {
     /// Swap the active profile. Decoding happens off the main thread.
     func load(profile: Profile) {
         queue.async { [weak self] in
-            self?.current = SoundProfile(profile: profile)
+            guard let self else { return }
+            let loaded = SoundProfile(profile: profile)
+            self.reconnectPlayers(to: loaded.format)
+            self.current = loaded
         }
+    }
+
+    /// Player nodes must be connected with the same format as the buffers they
+    /// schedule — `scheduleBuffer` throws an NSException (crashing the app) on
+    /// a channel-count mismatch, and the `format: nil` connections made in
+    /// `init` default to the stereo hardware format while the assets are mono.
+    private func reconnectPlayers(to format: AVAudioFormat?) {
+        guard let format, format != connectedFormat else { return }
+        let wasRunning = engine.isRunning
+        players.forEach { $0.stop() }
+        players.forEach { engine.connect($0, to: mixer, format: format) }
+        connectedFormat = format
+        if wasRunning { players.forEach { $0.play() } }
     }
 
     /// Play one or more layered sound events with minimal latency.
@@ -67,7 +84,8 @@ final class AudioEngine {
             guard let self, let profile = self.current else { return }
             self.start()
             for event in events {
-                guard let buffer = profile.buffers[event] else { continue }
+                guard let buffer = profile.buffers[event],
+                      buffer.format == self.connectedFormat else { continue }
                 let player = self.players[self.nextPlayer]
                 self.nextPlayer = (self.nextPlayer + 1) % self.players.count
                 player.scheduleBuffer(buffer, at: nil, options: .interrupts, completionHandler: nil)
