@@ -36,7 +36,7 @@ KeyClick/
 ├── UI/
 │   └── MenuBarView.swift        # SwiftUI dropdown
 ├── Resources/
-│   └── Sounds/                  # 45 .caf files (3 profiles × 15 sounds)
+│   └── Sounds/                  # 60 .caf files (3 profiles × 20 sounds)
 │       ├── clicky-blue/
 │       ├── tactile-brown/
 │       └── thocky-linear/
@@ -90,11 +90,30 @@ revoked later, a banner in the menu lets you re-grant it.
 
 ## Sound assets
 
-The 45 bundled `.caf` files are **procedurally synthesized placeholders**
+The 60 bundled `.caf` files are **procedurally synthesized placeholders**
 (mono, 16-bit, 44.1 kHz) so the app makes sound out of the box. Each profile
-has 15 sounds: `base`, `space`, `enter`, `backspace`, `tab`, `escape`, `arrow`,
-`function`, `capslock-on`, `capslock-off`, `modifier-cmd`, `modifier-opt`,
-`modifier-ctrl`, `modifier-shift`, `combo-chord`.
+has 20 sounds: `base`, the five letter-group variants below, `space`, `enter`,
+`backspace`, `tab`, `escape`, `arrow`, `function`, `capslock-on`,
+`capslock-off`, `modifier-cmd`, `modifier-opt`, `modifier-ctrl`,
+`modifier-shift`, `combo-chord`.
+
+### Per-key acoustic variation
+
+On a real board every key sounds slightly different — switch position on the
+PCB, keycap size, and travel feel all shift the acoustics. Rather than 26
+recordings, letters map to five acoustic groups (see `KeySoundMapper` /
+`KeyCode`), with the homing and edge groups overriding their row:
+
+| Variant            | Keys              | Character                          |
+|--------------------|-------------------|------------------------------------|
+| `base-thock.caf`   | A S D G H K       | home row — deeper, longer thock    |
+| `base-click.caf`   | W E R T Y U I O   | top row — sharp, fast actuation    |
+| `base-light.caf`   | X C V B N M       | bottom row — light, airy tap       |
+| `base-edge.caf`    | Q Z P L           | corner/edge — hollow resonance     |
+| `base-homing.caf`  | F J               | homing nubs — slightly muted       |
+
+Non-letter keys without a dedicated sound (digits, punctuation) fall back to
+`base.caf`.
 
 Swap in real recordings by overwriting files of the same name. To regenerate or
 tweak the placeholders:

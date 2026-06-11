@@ -18,6 +18,12 @@ import os
 import random
 import struct
 import sys
+import zlib
+
+
+def stable_seed(*parts):
+    """Deterministic seed — Python's hash() is randomized per process."""
+    return zlib.crc32('/'.join(parts).encode())
 
 SAMPLE_RATE = 44100
 
@@ -182,6 +188,13 @@ PROFILES = {
 # variation = (freq*, dur*, noise*, tone*, gain*)
 VARIATIONS = {
     'base':           (1.00, 1.00, 1.00, 1.00, 1.00),
+    # Letter-key acoustic groups (see KeySoundMapper): switch position,
+    # keycap size, and travel feel shift each region's character.
+    'base-thock':     (0.84, 1.25, 0.90, 1.18, 1.04),  # home row: deep, long
+    'base-click':     (1.12, 0.88, 1.18, 0.88, 1.00),  # top row: sharp, quick
+    'base-light':     (1.24, 0.75, 0.95, 0.78, 0.84),  # bottom row: airy tap
+    'base-edge':      (0.95, 1.35, 0.82, 1.30, 0.97),  # corners: hollow ring
+    'base-homing':    (0.90, 1.10, 0.72, 1.10, 0.92),  # F/J nubs: muted
     'space':          (0.62, 1.65, 0.90, 1.15, 1.05),
     'enter':          (0.92, 1.05, 1.10, 1.00, 1.08),
     'backspace':      (0.72, 1.10, 0.70, 1.05, 0.85),
@@ -203,7 +216,7 @@ def build_profile(name, params, out_root):
     os.makedirs(folder, exist_ok=True)
     count = 0
     for key, (vf, vd, vn, vt, vg) in VARIATIONS.items():
-        seed = abs(hash((name, key))) % (2 ** 31)
+        seed = stable_seed(name, key)
         samples = synth(
             seed,
             dur_ms=params['dur'] * vd,
@@ -219,7 +232,7 @@ def build_profile(name, params, out_root):
         count += 1
 
     # layered combo chord
-    chord_seed = abs(hash((name, 'combo-chord'))) % (2 ** 31)
+    chord_seed = stable_seed(name, 'combo-chord')
     write_caf(os.path.join(folder, 'combo-chord.caf'),
               synth_chord(chord_seed, params))
     count += 1
