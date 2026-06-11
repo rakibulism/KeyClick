@@ -1,0 +1,2 @@
+# KeyClick
+KeyClick is a lightweight macOS menu bar app that plays mechanical keyboard sounds on every keystroke. It is built for designers, developers, and keyboard enthusiasts who want the tactile audio experience of a high-end mechanical keyboard — regardless of what physical keyboard they are using.  Every key press triggers a realistic sound. Combo keys (⌘+Shift, ⌥+⌘, Caps Lock, etc.) trigger distinct layered or unique sounds. The app runs silently in the background with zero performance impact.
