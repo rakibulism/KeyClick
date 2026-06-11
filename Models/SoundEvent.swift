@@ -4,13 +4,18 @@ import Foundation
 /// inside a profile folder (e.g. `space` → `space.caf`).
 enum SoundEvent: String, CaseIterable {
     case base
-    // Letter keys, grouped by acoustic character — switch position on the
-    // PCB, keycap size, and travel feel make each region sound different.
-    case baseThock  = "base-thock"   // home row: larger caps, deeper, longer
-    case baseClick  = "base-click"   // top row: smaller caps, faster actuation
-    case baseLight  = "base-light"   // bottom row: lightest, airy
-    case baseEdge   = "base-edge"    // corner/edge keys: hollow resonance
-    case baseHoming = "base-homing"  // F/J homing nubs: slightly muted
+    // One sound per letter key — switch position on the PCB, keycap size,
+    // and travel feel make every key on a real board sound slightly
+    // different. Synthesis params live in Scripts/generate_sounds.py.
+    case letterA = "letter-a", letterB = "letter-b", letterC = "letter-c"
+    case letterD = "letter-d", letterE = "letter-e", letterF = "letter-f"
+    case letterG = "letter-g", letterH = "letter-h", letterI = "letter-i"
+    case letterJ = "letter-j", letterK = "letter-k", letterL = "letter-l"
+    case letterM = "letter-m", letterN = "letter-n", letterO = "letter-o"
+    case letterP = "letter-p", letterQ = "letter-q", letterR = "letter-r"
+    case letterS = "letter-s", letterT = "letter-t", letterU = "letter-u"
+    case letterV = "letter-v", letterW = "letter-w", letterX = "letter-x"
+    case letterY = "letter-y", letterZ = "letter-z"
     case space
     case enter
     case backspace

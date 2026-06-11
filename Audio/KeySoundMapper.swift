@@ -53,13 +53,7 @@ struct KeySoundMapper {
         default:
             if KeyCode.arrows.contains(keyCode)       { return .arrow }
             if KeyCode.functionKeys.contains(keyCode) { return .function }
-            // Letter keys: most specific first — homing nubs and edge
-            // resonance override the row group.
-            if KeyCode.homingKeys.contains(keyCode)   { return .baseHoming }
-            if KeyCode.edgeKeys.contains(keyCode)     { return .baseEdge }
-            if KeyCode.thockKeys.contains(keyCode)    { return .baseThock }
-            if KeyCode.clickKeys.contains(keyCode)    { return .baseClick }
-            if KeyCode.lightKeys.contains(keyCode)    { return .baseLight }
+            if let letter = KeyCode.letters[keyCode]  { return letter }
             return .base
         }
     }

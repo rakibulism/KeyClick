@@ -188,13 +188,6 @@ PROFILES = {
 # variation = (freq*, dur*, noise*, tone*, gain*)
 VARIATIONS = {
     'base':           (1.00, 1.00, 1.00, 1.00, 1.00),
-    # Letter-key acoustic groups (see KeySoundMapper): switch position,
-    # keycap size, and travel feel shift each region's character.
-    'base-thock':     (0.84, 1.25, 0.90, 1.18, 1.04),  # home row: deep, long
-    'base-click':     (1.12, 0.88, 1.18, 0.88, 1.00),  # top row: sharp, quick
-    'base-light':     (1.24, 0.75, 0.95, 0.78, 0.84),  # bottom row: airy tap
-    'base-edge':      (0.95, 1.35, 0.82, 1.30, 0.97),  # corners: hollow ring
-    'base-homing':    (0.90, 1.10, 0.72, 1.10, 0.92),  # F/J nubs: muted
     'space':          (0.62, 1.65, 0.90, 1.15, 1.05),
     'enter':          (0.92, 1.05, 1.10, 1.00, 1.08),
     'backspace':      (0.72, 1.10, 0.70, 1.05, 0.85),
@@ -211,11 +204,68 @@ VARIATIONS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Per-letter sounds (letter-a.caf … letter-z.caf)
+#
+# Each letter = its row's acoustic group character × a per-key tweak, plus a
+# unique noise seed, modeling how switch position on the PCB, keycap size,
+# and travel feel make every key on a real board sound slightly different.
+# ---------------------------------------------------------------------------
+
+# group = (freq*, dur*, noise*, tone*, gain*) relative to the profile's base
+LETTER_GROUPS = {
+    'thock': (0.84, 1.25, 0.90, 1.18, 1.04),  # home row: deep, long
+    'click': (1.12, 0.88, 1.18, 0.88, 1.00),  # top row: sharp, quick
+    'light': (1.24, 0.75, 0.95, 0.78, 0.84),  # bottom row: airy tap
+}
+
+# letter: (group, per-key tweak applied on top of the group)
+LETTERS = {
+    # --- home row: deep / thocky ---
+    'a': ('thock', (0.96, 1.05, 0.92, 1.10, 1.00)),  # medium, slightly hollow
+    's': ('thock', (1.00, 1.00, 1.00, 1.00, 1.02)),  # clean, satisfying
+    'd': ('thock', (1.03, 0.98, 1.05, 0.98, 1.00)),  # fractionally sharper
+    'f': ('thock', (0.97, 1.00, 0.78, 1.02, 0.94)),  # homing nub, muted
+    'g': ('thock', (1.05, 0.90, 1.10, 0.95, 1.04)),  # center board, tight punch
+    'h': ('thock', (1.05, 0.90, 1.10, 0.95, 1.04)),  # mirror of G
+    'j': ('thock', (0.95, 1.00, 0.78, 1.02, 0.94)),  # homing nub like F
+    'k': ('thock', (1.08, 0.95, 1.12, 0.92, 1.02)),  # clean, sharp click
+    'l': ('thock', (0.98, 1.18, 0.88, 1.20, 1.00)),  # edge: resonant, open
+    # --- top row: sharp / clicky ---
+    'q': ('click', (0.96, 1.25, 0.85, 1.25, 0.98)),  # corner: hollow ring
+    'w': ('click', (1.00, 1.00, 1.05, 1.00, 1.00)),  # clean sharp click
+    'e': ('click', (1.03, 0.95, 1.08, 0.95, 1.00)),  # crisp
+    'r': ('click', (1.02, 0.88, 1.05, 0.92, 0.98)),  # tight, quick
+    't': ('click', (0.98, 0.95, 1.10, 1.00, 1.04)),  # center-ish, punchy
+    'y': ('click', (1.00, 0.92, 1.02, 0.95, 0.94)),  # slightly lighter than T
+    'u': ('click', (1.04, 0.88, 1.06, 0.92, 0.98)),  # crisp, quick return
+    'i': ('click', (1.10, 0.85, 1.12, 0.85, 0.96)),  # very sharp, small cap
+    'o': ('click', (0.94, 1.00, 0.92, 1.08, 0.98)),  # slightly rounded
+    'p': ('click', (0.97, 1.20, 0.88, 1.20, 0.97)),  # edge: slight resonance
+    # --- bottom row: light / airy ---
+    'z': ('light', (0.96, 1.20, 0.85, 1.20, 0.92)),  # corner: hollow, light
+    'x': ('light', (1.04, 0.90, 1.02, 0.90, 0.96)),  # light, quick tap
+    'c': ('light', (1.00, 0.95, 1.05, 0.95, 1.00)),  # clean light click
+    'v': ('light', (0.93, 1.00, 1.00, 1.05, 1.02)),  # slightly deeper than C
+    'b': ('light', (0.86, 1.10, 1.08, 1.12, 1.10)),  # center bottom: punchy thock
+    'n': ('light', (0.86, 1.10, 1.08, 1.12, 1.10)),  # mirror of B
+    'm': ('light', (0.90, 1.05, 1.00, 1.05, 1.02)),  # slightly lighter than N
+}
+
+
+def letter_variation(letter):
+    group, tweak = LETTERS[letter]
+    return tuple(g * t for g, t in zip(LETTER_GROUPS[group], tweak))
+
+
 def build_profile(name, params, out_root):
     folder = os.path.join(out_root, name)
     os.makedirs(folder, exist_ok=True)
     count = 0
-    for key, (vf, vd, vn, vt, vg) in VARIATIONS.items():
+    variations = dict(VARIATIONS)
+    for letter in LETTERS:
+        variations['letter-' + letter] = letter_variation(letter)
+    for key, (vf, vd, vn, vt, vg) in variations.items():
         seed = stable_seed(name, key)
         samples = synth(
             seed,

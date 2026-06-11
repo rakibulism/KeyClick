@@ -53,21 +53,13 @@ enum KeyCode {
     /// F1–F12
     static let functionKeys: Set<Int64> = [122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111]
 
-    // MARK: Letter keys by acoustic group (ANSI virtual key codes).
-    // F/J homing nubs and corner/edge keys override their row's group.
-
-    /// F J — homing-bump keys, slightly muted.
-    static let homingKeys: Set<Int64> = [3, 38]
-
-    /// Q Z P L — corner/edge keys with a hollow resonance.
-    static let edgeKeys: Set<Int64> = [12, 6, 35, 37]
-
-    /// A S D G H K — home row (minus homing/edge), deep and thocky.
-    static let thockKeys: Set<Int64> = [0, 1, 2, 5, 4, 40]
-
-    /// W E R T Y U I O — top row (minus edge), sharp and clicky.
-    static let clickKeys: Set<Int64> = [13, 14, 15, 17, 16, 32, 34, 31]
-
-    /// X C V B N M — bottom row (minus edge), light and airy.
-    static let lightKeys: Set<Int64> = [7, 8, 9, 11, 45, 46]
+    /// A–Z (ANSI virtual key codes) → that key's dedicated sound.
+    static let letters: [Int64: SoundEvent] = [
+        0: .letterA, 11: .letterB, 8: .letterC, 2: .letterD, 14: .letterE,
+        3: .letterF, 5: .letterG, 4: .letterH, 34: .letterI, 38: .letterJ,
+        40: .letterK, 37: .letterL, 46: .letterM, 45: .letterN, 31: .letterO,
+        35: .letterP, 12: .letterQ, 15: .letterR, 1: .letterS, 17: .letterT,
+        32: .letterU, 9: .letterV, 13: .letterW, 7: .letterX, 16: .letterY,
+        6: .letterZ,
+    ]
 }

@@ -36,7 +36,7 @@ KeyClick/
 ├── UI/
 │   └── MenuBarView.swift        # SwiftUI dropdown
 ├── Resources/
-│   └── Sounds/                  # 60 .caf files (3 profiles × 20 sounds)
+│   └── Sounds/                  # 123 .caf files (3 profiles × 41 sounds)
 │       ├── clicky-blue/
 │       ├── tactile-brown/
 │       └── thocky-linear/
@@ -90,27 +90,31 @@ revoked later, a banner in the menu lets you re-grant it.
 
 ## Sound assets
 
-The 60 bundled `.caf` files are **procedurally synthesized placeholders**
+The 123 bundled `.caf` files are **procedurally synthesized placeholders**
 (mono, 16-bit, 44.1 kHz) so the app makes sound out of the box. Each profile
-has 20 sounds: `base`, the five letter-group variants below, `space`, `enter`,
-`backspace`, `tab`, `escape`, `arrow`, `function`, `capslock-on`,
+has 41 sounds: `base`, one `letter-a` … `letter-z` per letter key, `space`,
+`enter`, `backspace`, `tab`, `escape`, `arrow`, `function`, `capslock-on`,
 `capslock-off`, `modifier-cmd`, `modifier-opt`, `modifier-ctrl`,
 `modifier-shift`, `combo-chord`.
 
 ### Per-key acoustic variation
 
 On a real board every key sounds slightly different — switch position on the
-PCB, keycap size, and travel feel all shift the acoustics. Rather than 26
-recordings, letters map to five acoustic groups (see `KeySoundMapper` /
-`KeyCode`), with the homing and edge groups overriding their row:
+PCB, keycap size, and travel feel all shift the acoustics. Every letter A–Z
+has its **own sound file**, synthesized as its row's acoustic group character
+plus a per-key tweak and a unique noise grain (see `LETTERS` in
+`Scripts/generate_sounds.py` for all 26 parameter sets):
 
-| Variant            | Keys              | Character                          |
-|--------------------|-------------------|------------------------------------|
-| `base-thock.caf`   | A S D G H K       | home row — deeper, longer thock    |
-| `base-click.caf`   | W E R T Y U I O   | top row — sharp, fast actuation    |
-| `base-light.caf`   | X C V B N M       | bottom row — light, airy tap       |
-| `base-edge.caf`    | Q Z P L           | corner/edge — hollow resonance     |
-| `base-homing.caf`  | F J               | homing nubs — slightly muted       |
+| Group / row              | Keys                | Character                       |
+|--------------------------|---------------------|---------------------------------|
+| Deep / thocky (home row) | A S D F G H J K L   | larger caps, deeper, longer     |
+| Sharp / clicky (top row) | Q W E R T Y U I O P | smaller caps, faster actuation  |
+| Light / airy (bottom)    | Z X C V B N M       | lightest taps                   |
+
+Standout keys within the groups: `F`/`J` are muted by their homing nubs,
+corner/edge keys `Q` `Z` `P` `L` ring slightly hollow, `G`/`H` are tight and
+punchy at board center, `B`/`N` get a punchier bottom-row thock, and `I` is
+the sharpest small-cap click.
 
 Non-letter keys without a dedicated sound (digits, punctuation) fall back to
 `base.caf`.
