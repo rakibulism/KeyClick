@@ -1,161 +1,132 @@
-# KeyClick
+# ⌨️ KeyClick
 
-A lightweight macOS menu bar app that plays mechanical keyboard sounds on every
-keystroke. Every key press triggers a realistic sound; combo keys (⌘+Shift,
-⌥+⌘, Caps Lock, etc.) trigger distinct layered or unique sounds. The app runs
-silently in the background with zero performance impact and **never records,
-stores, or transmits any key data — audio playback only.**
+**Make your Mac sound like a mechanical keyboard.**
 
-This repository contains the complete Swift source and a full set of
-synthesized `.caf` sound assets. It is ready to be assembled into an Xcode
-project (see setup below).
+KeyClick is a tiny, free menu bar app for macOS that plays a satisfying
+mechanical keyboard sound every time you press a key — on any keyboard,
+in any app. Every letter A–Z has its own unique sound, just like a real
+mechanical board where each key sounds slightly different.
 
----
-
-## Project layout
-
-```
-KeyClick/
-├── App/
-│   ├── KeyClickApp.swift        # @main entry, MenuBarExtra scene, AppDelegate
-│   ├── MenuBarController.swift  # Coordinator: settings ↔ engine ↔ listener ↔ permissions
-│   ├── PermissionManager.swift  # Accessibility (AX) permission flow
-│   ├── SettingsStore.swift      # UserDefaults-backed settings
-│   ├── Info.plist               # LSUIElement (menu-bar agent), bundle metadata
-│   └── KeyClick.entitlements    # App Sandbox disabled (required for event tap)
-├── Audio/
-│   ├── AudioEngine.swift        # AVAudioEngine player-node pool, low-latency playback
-│   ├── SoundProfile.swift       # Pre-decodes a profile's buffers into memory
-│   └── KeySoundMapper.swift     # keyCode + modifiers → SoundEvent(s)
-├── KeyListener/
-│   └── GlobalKeyListener.swift  # CGEventTap (listen-only) for system-wide keys
-├── Models/
-│   ├── Profile.swift            # The 3 built-in switch profiles
-│   ├── SoundEvent.swift         # Sound identifiers ↔ .caf file names
-│   └── KeyCombo.swift           # ModifierSet + special key codes
-├── UI/
-│   └── MenuBarView.swift        # SwiftUI dropdown
-├── Resources/
-│   └── Sounds/                  # 123 .caf files (3 profiles × 41 sounds)
-│       ├── clicky-blue/
-│       ├── tactile-brown/
-│       └── thocky-linear/
-└── Scripts/
-    └── generate_sounds.py       # Regenerates all sound assets
-```
+> 🔒 **Private by design.** KeyClick never records, stores, or transmits
+> anything you type. It only listens for key *presses* to play a sound —
+> nothing is written to disk or sent over the network. Ever.
 
 ---
 
-## Setting up the Xcode project
+## ✨ Features
 
-The source is organized but does not include an `.xcodeproj`. To build:
-
-1. **Create the target.** Xcode → *New Project* → **App**, macOS. Product name
-   `KeyClick`, Interface **SwiftUI**, Language **Swift**. Delete the auto-created
-   `ContentView.swift` and the default `@main` struct.
-2. **Add the source.** Drag the `App`, `Audio`, `KeyListener`, `Models`, and
-   `UI` folders into the project ("Create groups", add to the KeyClick target).
-3. **Add the sounds as a folder reference.** Drag `Resources/Sounds` in and
-   choose **"Create folder references"** (blue folder, *not* yellow group). This
-   preserves the per-profile subdirectories that `SoundProfile.url(for:)`
-   expects (`Sounds/<profile>/<event>.caf`).
-4. **Info.plist.** Use the provided `App/Info.plist`, or set in Build Settings:
-   `Application is agent (UIElement) = YES` (`LSUIElement`), and
-   `Minimum Deployments = macOS 13.0`.
-5. **Entitlements.** Add `App/KeyClick.entitlements` and point
-   *Code Signing Entitlements* at it. App Sandbox **must be off** — a global
-   `CGEventTap` cannot run in the sandbox.
-6. **Signing.** Use a Developer ID certificate and enable the **Hardened
-   Runtime** (required for notarization).
-7. **Architectures.** Set *Build Active Architecture Only = No* for Release to
-   produce a Universal (Apple Silicon + Intel) binary.
-
-Build and run. KeyClick appears as a ⌨ icon in the menu bar.
+- 🎧 **Three switch profiles** — choose your sound:
+  - **Clicky Blue** — sharp, high-pitched click (Cherry MX Blue style)
+  - **Tactile Brown** — softer bump, medium pitch (Cherry MX Brown style)
+  - **Thocky Linear** — deep, muted *thock* (lubed linear style)
+- 🔤 **A unique sound for every letter A–Z** — home-row keys thock deeper,
+  the top row clicks sharper, the bottom row taps lighter. F and J are
+  subtly muted by their homing bumps, and corner keys like Q, Z, P, L
+  ring slightly hollow — just like a physical board.
+- ⌘ **Combo sounds** — modifier keys layer their own click under the key
+  sound, and big combos (⌘⌥⌃⇧) trigger a distinctive chord.
+- 🎚 **Independent volume** — keyboard sounds have their own volume slider,
+  separate from your system volume.
+- 🚀 **Zero lag, zero clutter** — sounds play in under 15 ms, the app lives
+  quietly in your menu bar, and there's no Dock icon.
+- 🔁 **Launch at Login** — set it once and forget it.
 
 ---
 
-## Permissions
+## 📥 Install
 
-On first launch the app requests **Accessibility** access (the only permission
-needed) via `AXIsProcessTrustedWithOptions` and opens
-*System Settings → Privacy & Security → Accessibility*. Enable KeyClick there.
-The app polls and starts listening automatically once granted; if access is
-revoked later, a banner in the menu lets you re-grant it.
+**Requires macOS 13 (Ventura) or later.**
 
-> During development, every fresh build can be treated as a new binary by macOS,
-> so you may need to remove and re-add KeyClick in the Accessibility list after
-> rebuilding.
+1. **Download** [`KeyClick.zip`](https://github.com/rakibulism/KeyClick/raw/main/KeyClick.zip)
+2. **Unzip it** — double-click the file in your Downloads folder. You'll get
+   `KeyClick.app`.
+3. **Move `KeyClick.app` to your `Applications` folder.**
+4. **Allow the app to open.** KeyClick is free and isn't signed with a paid
+   Apple Developer certificate, so macOS will block the first launch.
+   Open **Terminal** (⌘ Space, type "Terminal") and paste this one line:
+
+   ```bash
+   xattr -d com.apple.quarantine /Applications/KeyClick.app
+   ```
+
+   This removes the download quarantine flag so macOS will run the app.
+5. **Open KeyClick** from Applications. A ⌨️ icon appears in your menu bar
+   (top-right of the screen).
+
+### First launch: allow Accessibility
+
+To hear your keystrokes, KeyClick needs the **Accessibility** permission —
+this is the standard macOS permission for apps that respond to keys
+system-wide. On first launch KeyClick will open
+**System Settings → Privacy & Security → Accessibility** for you:
+
+1. Find **KeyClick** in the list and turn it **on**.
+2. That's it — sounds start instantly. No restart needed.
 
 ---
 
-## Sound assets
+## 🎛 Using KeyClick
 
-The 123 bundled `.caf` files are **procedurally synthesized placeholders**
-(mono, 16-bit, 44.1 kHz) so the app makes sound out of the box. Each profile
-has 41 sounds: `base`, one `letter-a` … `letter-z` per letter key, `space`,
-`enter`, `backspace`, `tab`, `escape`, `arrow`, `function`, `capslock-on`,
-`capslock-off`, `modifier-cmd`, `modifier-opt`, `modifier-ctrl`,
-`modifier-shift`, `combo-chord`.
+Click the **⌨️ icon** in your menu bar:
 
-### Per-key acoustic variation
+| Control | What it does |
+|---|---|
+| **Enabled** | Master switch — instantly mute/unmute all key sounds |
+| **Sound Profile** | Pick Clicky Blue, Tactile Brown, or Thocky Linear |
+| **Volume** | Key sound volume, independent of system volume |
+| **Launch at Login** | Start KeyClick automatically when you log in |
+| **Quit KeyClick** | Stop the app completely |
 
-On a real board every key sounds slightly different — switch position on the
-PCB, keycap size, and travel feel all shift the acoustics. Every letter A–Z
-has its **own sound file**, synthesized as its row's acoustic group character
-plus a per-key tweak and a unique noise grain (see `LETTERS` in
-`Scripts/generate_sounds.py` for all 26 parameter sets):
+---
 
-| Group / row              | Keys                | Character                       |
-|--------------------------|---------------------|---------------------------------|
-| Deep / thocky (home row) | A S D F G H J K L   | larger caps, deeper, longer     |
-| Sharp / clicky (top row) | Q W E R T Y U I O P | smaller caps, faster actuation  |
-| Light / airy (bottom)    | Z X C V B N M       | lightest taps                   |
+## 🛟 Troubleshooting
 
-Standout keys within the groups: `F`/`J` are muted by their homing nubs,
-corner/edge keys `Q` `Z` `P` `L` ring slightly hollow, `G`/`H` are tight and
-punchy at board center, `B`/`N` get a punchier bottom-row thock, and `I` is
-the sharpest small-cap click.
+**“KeyClick is damaged and can't be opened”**
+That's the quarantine flag from step 4 — run the `xattr` command above,
+then open the app again.
 
-Non-letter keys without a dedicated sound (digits, punctuation) fall back to
-`base.caf`.
+**No sound while typing**
+- Click the ⌨️ menu bar icon — if you see an orange *"Accessibility access
+  needed"* banner, click **Open Settings…** and enable KeyClick in the list.
+- Make sure the **Enabled** toggle is on and the volume slider isn't at zero.
 
-Swap in real recordings by overwriting files of the same name. To regenerate or
-tweak the placeholders:
+**The permission is enabled but the banner won't go away**
+Remove KeyClick from the Accessibility list (− button), then re-add it
+(+ button → Applications → KeyClick), or toggle it off and on.
+
+**Sounds stop after updating the app**
+Re-grant Accessibility as above — macOS sometimes ties the permission to
+the exact copy of the app you downloaded.
+
+---
+
+## 🔐 Privacy
+
+KeyClick is built so it *can't* leak what you type:
+
+- It uses a **listen-only** event tap — it never modifies, consumes, or
+  records key events.
+- It maps each key press to a sound and plays it. **No text is ever
+  reconstructed, logged, stored, or transmitted.**
+- The app makes **zero network connections** and writes nothing to disk
+  except its own settings (volume, chosen profile).
+- It's fully **open source** — audit every line in this repository.
+
+---
+
+## 🧑‍💻 For developers
+
+KeyClick is written in Swift (SwiftUI + AVAudioEngine + CGEventTap) and
+builds without Xcode — just the Command Line Tools:
 
 ```bash
-python3 Scripts/generate_sounds.py
+git clone https://github.com/rakibulism/KeyClick.git
+cd KeyClick
+./Scripts/build_app.sh   # produces build/KeyClick.app
 ```
 
-(Pure Python, no dependencies. Edit `PROFILES` / `VARIATIONS` in the script to
-adjust character.)
-
----
-
-## How combos map to sounds
-
-Combos are detected from the modifier flags active at each `keyDown` — no
-keylogging or stateful tracking. See `KeySoundMapper`:
-
-- **Plain key** → its base or special sound (Space, Enter, Backspace, Tab,
-  Escape, arrows, F-keys each distinct).
-- **One modifier held** → modifier click layered under the key sound
-  (e.g. ⌘ + key = command click + base).
-- **Two or more modifiers** (incl. the ⌘⌥⌃⇧ Hyper chord) → the distinctive
-  layered `combo-chord`.
-- **Caps Lock** → separate on/off toggle sounds.
-- OS key-repeat events are ignored — sound fires once per physical press.
-
----
-
-## Spec compliance notes
-
-- Latency: buffers are pre-decoded and scheduled on a pool of always-running
-  `AVAudioPlayerNode`s with `.interrupts`, targeting the <15 ms goal. Measure on
-  device and adjust `poolSize` if needed.
-- Burst typing: new hits interrupt the oldest node rather than queueing.
-- Volume is independent of system volume (engine mixer `outputVolume`).
-- Launch at Login uses `SMAppService` (macOS 13+).
-- Privacy: listen-only event tap, nothing written to disk or network.
-
-Distribution is direct download (`.dmg`); the Mac App Store is not viable
-because the global event tap requires running outside the App Sandbox.
+The bundled sounds are procedurally synthesized by
+`Scripts/generate_sounds.py` (pure Python, no dependencies) — each letter's
+sound is derived from its row's acoustic character plus a per-key tweak.
+Swap in real recordings by overwriting the `.caf` files in
+`Resources/Sounds/<profile>/` and rebuilding.

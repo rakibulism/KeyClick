@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KeyClick — Mechanical keyboard sounds for your Mac</title>
+<meta name="description" content="KeyClick is a free, open-source macOS menu bar app that plays mechanical keyboard sounds on every keystroke. Every letter A–Z has its own sound. Private by design.">
+<meta property="og:title" content="KeyClick — Mechanical keyboard sounds for your Mac">
+<meta property="og:description" content="A free menu bar app that makes every keystroke sound like a real mechanical keyboard. Three switch profiles, a unique sound per key, zero recording.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #12151c;
+    --surface-2: #181c25;
+    --text: #e8eaf0;
+    --text-dim: #9aa1b2;
+    --accent: #f6b352;
+    --accent-deep: #e09a2f;
+    --accent-text: #1a1306;
+    --cap-top: #232834;
+    --cap-face: #1b1f29;
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  h1, h2, h3 { text-wrap: balance; line-height: 1.15; }
+  p { text-wrap: pretty; }
+  a { color: var(--accent); }
+
+  .wrap { max-width: 1020px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- nav ---------- */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 0;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; color: var(--text); text-decoration: none; }
+  .logo .mark {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+    display: grid; place-items: center; font-size: 18px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.25) inset, 0 4px 12px rgba(246,179,82,.25);
+  }
+  .nav-gh {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px;
+    border-radius: 10px; text-decoration: none; color: var(--text-dim); font-size: 14px; font-weight: 500;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
+    transition-property: color, box-shadow, scale; transition-duration: .2s; transition-timing-function: var(--ease);
+  }
+  .nav-gh:hover { color: var(--text); box-shadow: 0 0 0 1px rgba(255,255,255,.16) inset; }
+  .nav-gh:active { scale: 0.96; }
+
+  /* ---------- hero ---------- */
+  header.hero { text-align: center; padding: 72px 0 36px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; color: var(--accent);
+    background: rgba(246,179,82,.08);
+    box-shadow: 0 0 0 1px rgba(246,179,82,.22) inset;
+  }
+  .hero h1 {
+    font-size: clamp(38px, 6.5vw, 64px); font-weight: 800; letter-spacing: -0.02em;
+    margin: 22px auto 16px; max-width: 14ch;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero .sub { font-size: clamp(16px, 2.2vw, 19px); color: var(--text-dim); max-width: 52ch; margin: 0 auto 32px; }
+  .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px; min-height: 52px; padding: 0 26px;
+    border-radius: 13px; font-size: 16px; font-weight: 600; text-decoration: none; border: none; cursor: pointer;
+    transition-property: scale, box-shadow, background-color; transition-duration: .2s; transition-timing-function: var(--ease);
+  }
+  .btn:active { scale: 0.96; }
+  .btn-primary {
+    background: linear-gradient(180deg, var(--accent), var(--accent-deep)); color: var(--accent-text);
+    box-shadow: 0 1px 0 rgba(255,255,255,.3) inset, 0 8px 24px rgba(246,179,82,.28), 0 2px 6px rgba(0,0,0,.4);
+  }
+  .btn-primary:hover { box-shadow: 0 1px 0 rgba(255,255,255,.3) inset, 0 10px 30px rgba(246,179,82,.4), 0 2px 6px rgba(0,0,0,.4); }
+  .btn-ghost { color: var(--text); box-shadow: 0 0 0 1px rgba(255,255,255,.12) inset; }
+  .btn-ghost:hover { box-shadow: 0 0 0 1px rgba(255,255,255,.22) inset; }
+  .meta-line { margin-top: 18px; font-size: 13.5px; color: var(--text-dim); }
+  .meta-line span { margin: 0 8px; opacity: .5; }
+
+  /* staggered entrance */
+  .rise { opacity: 0; translate: 0 14px; animation: rise .65s var(--ease) forwards; }
+  .d1 { animation-delay: .05s } .d2 { animation-delay: .15s } .d3 { animation-delay: .25s }
+  .d4 { animation-delay: .35s } .d5 { animation-delay: .45s }
+  @keyframes rise { to { opacity: 1; translate: 0 0; } }
+  @media (prefers-reduced-motion: reduce) { .rise { animation: none; opacity: 1; translate: 0 0; } }
+
+  /* ---------- keyboard demo ---------- */
+  .demo { padding: 26px 0 10px; text-align: center; }
+  .demo-hint { font-size: 14px; color: var(--text-dim); margin-bottom: 18px; }
+  .demo-hint kbd {
+    font-family: inherit; font-size: 12.5px; padding: 2px 7px; border-radius: 6px;
+    background: var(--surface-2); box-shadow: 0 0 0 1px rgba(255,255,255,.1) inset, 0 1.5px 0 rgba(0,0,0,.5);
+  }
+  .board {
+    display: inline-block; padding: 18px; border-radius: 22px;
+    background: linear-gradient(180deg, #161a22, #10131a);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset, 0 24px 60px rgba(0,0,0,.5), 0 4px 14px rgba(0,0,0,.4);
+  }
+  .krow { display: flex; justify-content: center; gap: 8px; margin-bottom: 8px; }
+  .krow:last-child { margin-bottom: 0; }
+  .key {
+    width: clamp(40px, 7.2vw, 56px); height: clamp(40px, 7.2vw, 56px);
+    border-radius: 10px; border: none; cursor: pointer;
+    font-family: inherit; font-size: clamp(13px, 2vw, 16px); font-weight: 600; color: var(--text-dim);
+    background: linear-gradient(180deg, var(--cap-top), var(--cap-face));
+    box-shadow: 0 1px 0 rgba(255,255,255,.09) inset, 0 -3px 0 rgba(0,0,0,.35) inset, 0 4px 0 #06070a, 0 6px 10px rgba(0,0,0,.45);
+    translate: 0 0;
+    transition-property: translate, box-shadow, color, background-color; transition-duration: .09s; transition-timing-function: var(--ease);
+  }
+  .key:hover { color: var(--text); }
+  .key.down {
+    translate: 0 3px; color: var(--accent);
+    box-shadow: 0 1px 0 rgba(255,255,255,.07) inset, 0 -2px 0 rgba(0,0,0,.35) inset, 0 1px 0 #06070a, 0 2px 5px rgba(0,0,0,.45);
+  }
+  .profiles { display: flex; gap: 8px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
+  .chip {
+    min-height: 40px; padding: 0 18px; border-radius: 999px; border: none; cursor: pointer;
+    font-family: inherit; font-size: 14px; font-weight: 500; color: var(--text-dim); background: transparent;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.1) inset;
+    transition-property: color, background-color, box-shadow, scale; transition-duration: .2s; transition-timing-function: var(--ease);
+  }
+  .chip:active { scale: 0.96; }
+  .chip.on {
+    color: var(--accent-text); background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+    box-shadow: 0 1px 0 rgba(255,255,255,.3) inset, 0 4px 14px rgba(246,179,82,.3);
+  }
+
+  /* ---------- sections ---------- */
+  section { padding: 76px 0 0; }
+  .sec-label { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+  section h2 { font-size: clamp(26px, 4vw, 36px); font-weight: 700; letter-spacing: -0.01em; margin-bottom: 14px; }
+  .sec-sub { color: var(--text-dim); max-width: 58ch; margin-bottom: 36px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--surface); border-radius: 18px; padding: 26px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset, 0 10px 30px rgba(0,0,0,.25);
+  }
+  .card .ico {
+    width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 21px;
+    background: var(--surface-2); margin-bottom: 16px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.07) inset;
+  }
+  .card h3 { font-size: 17px; margin-bottom: 8px; }
+  .card p { font-size: 14.5px; color: var(--text-dim); }
+
+  /* ---------- install steps ---------- */
+  .steps { display: flex; flex-direction: column; gap: 12px; counter-reset: step; }
+  .step {
+    display: flex; gap: 18px; align-items: flex-start;
+    background: var(--surface); border-radius: 18px; padding: 22px 24px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset, 0 10px 30px rgba(0,0,0,.25);
+  }
+  .step .num {
+    counter-increment: step; flex: 0 0 auto;
+    width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+    font-weight: 700; font-size: 15px; color: var(--accent-text);
+    background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+    box-shadow: 0 1px 0 rgba(255,255,255,.3) inset;
+  }
+  .step .num::before { content: counter(step); }
+  .step h3 { font-size: 16.5px; margin: 4px 0 6px; }
+  .step p { font-size: 14.5px; color: var(--text-dim); }
+  .cmd {
+    display: flex; align-items: center; gap: 10px; margin-top: 12px;
+    background: #0b0e13; border-radius: 11px; padding: 11px 8px 11px 16px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace; font-size: 13px; color: #cdd3e0;
+    overflow-x: auto; white-space: nowrap;
+  }
+  .cmd code { flex: 1 1 auto; }
+  .copy {
+    flex: 0 0 auto; min-width: 64px; min-height: 34px; padding: 0 12px;
+    border: none; border-radius: 8px; cursor: pointer;
+    font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--text); background: var(--surface-2);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.1) inset;
+    transition-property: background-color, scale; transition-duration: .15s; transition-timing-function: var(--ease);
+  }
+  .copy:hover { background: #20242f; }
+  .copy:active { scale: 0.96; }
+  .note { font-size: 13.5px; color: var(--text-dim); margin-top: 14px; }
+
+  /* ---------- privacy ---------- */
+  .privacy {
+    margin-top: 76px; text-align: center;
+    background: linear-gradient(180deg, rgba(246,179,82,.07), rgba(246,179,82,.02));
+    border-radius: 24px; padding: 52px 28px;
+    box-shadow: 0 0 0 1px rgba(246,179,82,.14) inset;
+  }
+  .privacy h2 { margin-bottom: 12px; }
+  .privacy p { color: var(--text-dim); max-width: 56ch; margin: 0 auto; }
+
+  footer {
+    margin-top: 76px; padding: 34px 0 44px; text-align: center;
+    font-size: 14px; color: var(--text-dim);
+    box-shadow: 0 1px 0 rgba(255,255,255,.06) inset;
+  }
+  footer a { color: var(--text-dim); text-decoration: underline; text-underline-offset: 3px; }
+  footer a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav>
+    <a class="logo" href="#"><span class="mark">⌨️</span> KeyClick</a>
+    <a class="nav-gh" href="https://github.com/rakibulism/KeyClick" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
+  </nav>
+
+  <header class="hero">
+    <div class="badge rise d1">🔒 Free · Open source · Nothing you type is ever recorded</div>
+    <h1 class="rise d2">Make your Mac sound <em>mechanical</em></h1>
+    <p class="sub rise d3">KeyClick lives in your menu bar and plays a satisfying mechanical keyboard
+    sound on every keystroke — with a unique sound for every letter A–Z, just like a real board.</p>
+    <div class="cta-row rise d4">
+      <a class="btn btn-primary" href="KeyClick.zip" download>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download for Mac
+      </a>
+      <a class="btn btn-ghost" href="#install">How to install</a>
+    </div>
+    <div class="meta-line rise d5">macOS 13+ <span>•</span> Apple Silicon <span>•</span> 648 KB <span>•</span> No account, no ads</div>
+  </header>
+
+  <div class="demo rise d5">
+    <p class="demo-hint">Try it — click the keys or just <kbd>type</kbd> on your keyboard 🔊</p>
+    <div class="board" id="board" aria-label="Interactive keyboard sound demo"></div>
+    <div class="profiles" id="profiles" role="group" aria-label="Switch sound profile">
+      <button class="chip on" data-p="blue">Clicky Blue</button>
+      <button class="chip" data-p="brown">Tactile Brown</button>
+      <button class="chip" data-p="thock">Thocky Linear</button>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="sec-label">Features</div>
+    <h2>Small app, serious sound</h2>
+    <p class="sec-sub">Everything runs locally in a lightweight menu bar app — no Dock icon,
+    no setup, no measurable performance impact.</p>
+    <div class="grid">
+      <div class="card"><div class="ico">🎧</div><h3>Three switch profiles</h3><p>Clicky Blue for a sharp, high-pitched click. Tactile Brown for a softer bump. Thocky Linear for that deep, lubed-switch <em>thock</em>.</p></div>
+      <div class="card"><div class="ico">🔤</div><h3>Every key sounds unique</h3><p>All 26 letters have their own sound. Home-row keys thock deeper, the top row clicks sharper, F and J are muted by their homing bumps, and corner keys ring slightly hollow.</p></div>
+      <div class="card"><div class="ico">⌘</div><h3>Combo &amp; modifier sounds</h3><p>Modifiers layer their own click under each keystroke, Caps Lock gets distinct on/off toggles, and big combos like ⌘⌥⌃⇧ fire a satisfying chord.</p></div>
+      <div class="card"><div class="ico">⚡️</div><h3>Instant response</h3><p>Sounds are pre-loaded into memory and play in under 15 milliseconds — they keep up with the fastest burst typing without lag or stutter.</p></div>
+      <div class="card"><div class="ico">🎚</div><h3>Independent volume</h3><p>Key sounds get their own volume slider, separate from system volume. One click mutes everything when you need silence.</p></div>
+      <div class="card"><div class="ico">🚀</div><h3>Set and forget</h3><p>Enable Launch at Login and KeyClick quietly starts with your Mac — always there, never in the way.</p></div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="sec-label">Install</div>
+    <h2>Up and running in two minutes</h2>
+    <p class="sec-sub">KeyClick requires macOS 13 (Ventura) or newer.</p>
+    <div class="steps">
+      <div class="step"><div class="num"></div><div>
+        <h3>Download and unzip</h3>
+        <p>Grab <a href="KeyClick.zip" download>KeyClick.zip</a> and double-click it in your Downloads folder — you'll get <strong>KeyClick.app</strong>.</p>
+      </div></div>
+      <div class="step"><div class="num"></div><div>
+        <h3>Move it to Applications</h3>
+        <p>Drag <strong>KeyClick.app</strong> into your <strong>Applications</strong> folder.</p>
+      </div></div>
+      <div class="step"><div class="num"></div><div>
+        <h3>Allow the app to open</h3>
+        <p>KeyClick is free and isn't signed with a paid Apple certificate, so macOS blocks the first
+        launch. Open <strong>Terminal</strong> (⌘ Space, type “Terminal”) and paste this line, then press Return:</p>
+        <div class="cmd"><code id="xattr-cmd">xattr -d com.apple.quarantine /Applications/KeyClick.app</code><button class="copy" id="copy-btn">Copy</button></div>
+      </div></div>
+      <div class="step"><div class="num"></div><div>
+        <h3>Open KeyClick and grant Accessibility</h3>
+        <p>Launch KeyClick from Applications — a ⌨️ icon appears in your menu bar. The app opens
+        <strong>System Settings → Privacy &amp; Security → Accessibility</strong> for you: switch
+        <strong>KeyClick</strong> on, and sounds start instantly. This standard permission only lets the
+        app <em>hear that</em> a key was pressed so it can play a sound — nothing is recorded.</p>
+      </div></div>
+    </div>
+    <p class="note">Trouble? The <a href="https://github.com/rakibulism/KeyClick#-troubleshooting" target="_blank" rel="noopener">troubleshooting guide</a> covers the common fixes in 30 seconds.</p>
+  </section>
+
+  <div class="privacy">
+    <h2>🔒 Private by design</h2>
+    <p>KeyClick uses a listen-only event tap to play sounds — it never records, stores, reconstructs,
+    or transmits anything you type. It makes zero network connections, and the entire source code is
+    <a href="https://github.com/rakibulism/KeyClick" target="_blank" rel="noopener">open for anyone to audit</a>.</p>
+  </div>
+
+  <footer>
+    ⌨️ KeyClick — free &amp; open source ·
+    <a href="https://github.com/rakibulism/KeyClick" target="_blank" rel="noopener">Source on GitHub</a> ·
+    <a href="KeyClick.zip" download>Download</a>
+  </footer>
+</div>
+
+<script>
+/* ---------- keyboard demo: render ---------- */
+const ROWS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+const board = document.getElementById('board');
+const capByKey = {};
+for (const row of ROWS) {
+  const r = document.createElement('div');
+  r.className = 'krow';
+  for (const ch of row) {
+    const b = document.createElement('button');
+    b.className = 'key';
+    b.textContent = ch;
+    b.dataset.key = ch.toLowerCase();
+    b.setAttribute('aria-label', 'Play sound for key ' + ch);
+    r.appendChild(b);
+    capByKey[ch.toLowerCase()] = b;
+  }
+  board.appendChild(r);
+}
+
+/* ---------- tiny WebAudio key-click synth ----------
+   Mirrors the real app: a noise transient (the "click") plus a resonant
+   body tone (the "thock"), with per-row and per-key variation. */
+let ctx = null;
+const AC = window.AudioContext || window.webkitAudioContext;
+function audio() {
+  if (!ctx) ctx = new AC();
+  if (ctx.state === 'suspended') ctx.resume();
+  return ctx;
+}
+
+const PROFILES = {
+  blue:  { body: 420, noise: 0.9,  tone: 0.30, nDecay: 0.012, tDecay: 0.035, bp: 3600 },
+  brown: { body: 250, noise: 0.6,  tone: 0.55, nDecay: 0.018, tDecay: 0.055, bp: 2200 },
+  thock: { body: 150, noise: 0.32, tone: 0.85, nDecay: 0.022, tDecay: 0.110, bp: 1200 },
+};
+let profile = PROFILES.blue;
+
+/* per-row character + standout keys, like the app's per-key sounds */
+const HOME = 'asdfghjkl', TOP = 'qwertyuiop';
+function keyParams(k) {
+  let f = 1.0, d = 1.0, g = 1.0;
+  if (HOME.includes(k))      { f = 0.84; d = 1.25; g = 1.05; }
+  else if (TOP.includes(k))  { f = 1.12; d = 0.88; }
+  else                       { f = 1.24; d = 0.75; g = 0.88; }
+  if (k === 'f' || k === 'j') { g *= 0.78; }                 // homing nubs: muted
+  if ('qzpl'.includes(k))     { d *= 1.3; }                  // corners: hollow ring
+  if ('gh'.includes(k))       { f *= 1.05; d *= 0.9; }       // board center: punchy
+  if ('bn'.includes(k))       { f *= 0.88; g *= 1.1; }       // bottom center: thockier
+  /* deterministic per-key grain so the same key always sounds the same */
+  const grain = 1 + ((k.charCodeAt(0) * 37) % 7 - 3) * 0.01;
+  return { f: f * grain, d, g };
+}
+
+let noiseBuf = null;
+function getNoise(c) {
+  if (!noiseBuf) {
+    noiseBuf = c.createBuffer(1, c.sampleRate * 0.2, c.sampleRate);
+    const data = noiseBuf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  }
+  return noiseBuf;
+}
+
+function playKey(k) {
+  const c = audio();
+  const { f, d, g } = keyParams(k);
+  const t = c.currentTime;
+  const out = c.createGain();
+  out.gain.value = 0.5 * g;
+  out.connect(c.destination);
+
+  /* noise transient */
+  const src = c.createBufferSource();
+  src.buffer = getNoise(c);
+  const bp = c.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.value = profile.bp * f;
+  bp.Q.value = 0.8;
+  const ng = c.createGain();
+  ng.gain.setValueAtTime(profile.noise, t);
+  ng.gain.exponentialRampToValueAtTime(0.001, t + profile.nDecay * d * 2.5);
+  src.connect(bp).connect(ng).connect(out);
+  src.start(t);
+  src.stop(t + 0.12);
+
+  /* resonant body: two detuned partials */
+  for (const [mult, amp] of [[1, 1], [2.01, 0.4]]) {
+    const o = c.createOscillator();
+    o.frequency.value = profile.body * f * mult;
+    const og = c.createGain();
+    og.gain.setValueAtTime(profile.tone * amp, t);
+    og.gain.exponentialRampToValueAtTime(0.001, t + profile.tDecay * d * 2.5);
+    o.connect(og).connect(out);
+    o.start(t);
+    o.stop(t + 0.3);
+  }
+}
+
+function press(k) {
+  const cap = capByKey[k];
+  if (!cap) return;
+  playKey(k);
+  cap.classList.add('down');
+  setTimeout(() => cap.classList.remove('down'), 110);
+}
+
+board.addEventListener('pointerdown', e => {
+  const cap = e.target.closest('.key');
+  if (cap) press(cap.dataset.key);
+});
+window.addEventListener('keydown', e => {
+  if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (/^[a-z]$/i.test(e.key)) press(e.key.toLowerCase());
+});
+
+/* profile switcher */
+document.getElementById('profiles').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  profile = PROFILES[chip.dataset.p];
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === chip));
+  press('s');
+});
+
+/* copy install command */
+document.getElementById('copy-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('copy-btn');
+  try {
+    await navigator.clipboard.writeText(document.getElementById('xattr-cmd').textContent);
+    btn.textContent = 'Copied!';
+  } catch { btn.textContent = 'Press ⌘C'; }
+  setTimeout(() => { btn.textContent = 'Copy'; }, 1600);
+});
+</script>
+</body>
+</html>
