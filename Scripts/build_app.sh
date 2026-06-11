@@ -25,6 +25,13 @@ cp App/Info.plist "$APP/Contents/Info.plist"
 cp -R Resources/Sounds "$APP/Contents/Resources/Sounds"
 
 echo "==> Code signing (ad-hoc)"
-codesign --force --deep --sign - "$APP"
+# Pin the designated requirement to the bundle identifier only. Ad-hoc
+# signatures normally get "identifier X and cdhash H" — the cdhash changes on
+# every rebuild, which invalidates the Accessibility (TCC) grant each time.
+# With an identifier-only requirement, the grant survives rebuilds.
+codesign --force --deep --sign - \
+    --identifier com.keyclick.app \
+    --requirements '=designated => identifier "com.keyclick.app"' \
+    "$APP"
 
 echo "==> Done: $APP"
